@@ -1,19 +1,95 @@
 import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
-import Home from '../views/Home.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
+    name: 'index',
+    component: () => import(/* webpackChunkName: "main" */ '@/views/index.vue')
   },
   {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/About.vue')
+    path: '/page01',
+    name: 'Page01',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page01.vue')
+  },
+  {
+    path: '/page02',
+    name: 'Page02',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page02.vue')
+  },
+  {
+    path: '/page03',
+    name: 'Page03',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page03.vue')
+  },
+  {
+    path: '/page04',
+    name: 'Page04',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page04.vue')
+  },
+  {
+    path: '/page05',
+    name: 'Page05',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page05.vue')
+  },
+  {
+    path: '/page06',
+    name: 'Page06',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page06.vue')
+  },
+  {
+    path: '/page07',
+    name: 'Page07',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page07.vue')
+  },
+  {
+    path: '/page08',
+    name: 'Page08',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page08.vue')
+  },
+  {
+    path: '/page09',
+    name: 'Page09',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page09.vue')
+  },
+  {
+    path: '/page10',
+    name: 'Page10',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page10.vue')
+  },
+  {
+    path: '/page11',
+    name: 'Page11',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page11.vue')
+  },
+  {
+    path: '/page12',
+    name: 'Page12',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page12.vue')
+  },
+  {
+    path: '/page13',
+    name: 'Page13',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page13.vue')
+  },
+  {
+    path: '/page14',
+    name: 'Page14',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page14.vue')
+  },
+  {
+    path: '/page15',
+    name: 'Page15',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page15.vue')
+  },
+  {
+    path: '/404',
+    name: '404',
+    component: () => import(/* webpackChunkName: "error" */ '@/views/Err.vue')
+  },
+  // 配置404页面
+  {
+    path: '/:pathMatch(.*)',
+    redirect: '/404'
   }
 ]
 
