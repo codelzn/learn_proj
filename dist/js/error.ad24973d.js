@@ -1,0 +1,2 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["error"],{"90a4":function(n,r,e){"use strict";e.r(r);var t=e("7a23");function c(n,r){return Object(t["r"])(),Object(t["e"])("h1",null,"ルーター書き忘れた")}var o=e("6b0d"),a=e.n(o);const u={},s=a()(u,[["render",c]]);r["default"]=s}}]);
+//# sourceMappingURL=error.ad24973d.js.map
