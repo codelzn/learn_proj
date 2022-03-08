@@ -74,7 +74,7 @@ onMounted(() => {
   // createAnimeByGsap()
 })
 </script>
-<style lang="less">
+<style lang="less" scoped>
 @import (css)
   url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700;900&display=swap");
 * {
@@ -97,10 +97,12 @@ section {
     color: #00cefe;
     margin: 40px;
     max-width: 650px;
-    .span10 {
-      position: relative;
-      display: inline-block;
-    }
   }
+}
+</style>
+<style>
+.span10 {
+  position: relative;
+  display: inline-block;
 }
 </style>
