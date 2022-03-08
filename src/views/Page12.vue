@@ -1,5 +1,8 @@
 <template>
   <div class="root">
+    <div class="cursor">
+      <div class="circle" v-for="i in 10" :key="i"></div>
+    </div>
     <div class="container">
       <div v-for="i in blockNum" :key="i" class="block"></div>
       <h2>
@@ -11,6 +14,7 @@
 </template>
 <script lang="ts" setup>
 import anime from 'animejs'
+import gsap from 'gsap'
 import { onMounted, ref } from 'vue'
 const blockNum = ref<number>(100)
 const createAnime = ():void => {
@@ -31,8 +35,18 @@ const createAnime = ():void => {
     complete: createAnime
   })
 }
+const moveMouse = ():void => {
+  window.addEventListener('mousemove', e => {
+    gsap.to('.circle', {
+      x: e.clientX,
+      y: e.clientY,
+      stagger: -0.05
+    })
+  })
+}
 onMounted(() => {
   createAnime()
+  moveMouse()
 })
 </script>
 <style lang="less" scoped>
@@ -80,6 +94,23 @@ onMounted(() => {
       height: 100px;
       background: @block-color;
       box-shadow: 10px 10px 50px rgba(0,0,0,0.2);
+    }
+  }
+  .cursor {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70px;
+    height: 70px;
+    .circle {
+      position: absolute;
+      z-index: 100000;
+      top: -50%;
+      left: -50%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(yellow, #ff005e);
+      border-radius: 50%;
     }
   }
 }

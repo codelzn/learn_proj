@@ -49,7 +49,7 @@ const createAnime = () => {
         delay: anime.stagger(20)
       })
 }
-// gsap动画 基础版无法实现 满血版需要购买Max版本
+// gsap动画 未实现
 const createAnimeByGsap = () => {
   gsap.to('.text span', {
     ease: 'easeInOutExpo',
@@ -62,10 +62,7 @@ const createAnimeByGsap = () => {
     translateY: () => {
       return gsap.utils.random(-500, 500)
     },
-    duration: 5000,
-    delay: () => {
-      return gsap.utils.random(0, 5)
-    }
+    duration: 5000
   })
 }
 onMounted(() => {
