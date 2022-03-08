@@ -1,4 +1,4 @@
-# vue_of_h5c3
+# H5 C3の勉強
 
 ## Project setup
 ```
@@ -19,6 +19,3 @@ yarn build
 ```
 yarn lint
 ```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
