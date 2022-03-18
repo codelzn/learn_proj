@@ -13,6 +13,7 @@
     "dat.gui": "^0.7.9",
     "gsap": "^3.9.1",
     "lil-gui": "^0.16.1",
+    "raw-loader": "^4.0.2",
     "remixicon": "^2.5.0",
     "scrollreveal": "^4.0.9",
     "three": "^0.138.0",
@@ -43,6 +44,7 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.0",
     "eslint-plugin-vue": "^7.0.0",
+    "glslify-loader": "^2.0.0",
     "less": "^3.0.4",
     "less-loader": "^5.0.0",
     "typescript": "~4.1.5"
