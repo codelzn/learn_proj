@@ -112,6 +112,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import(/* webpackChunkName: "page" */ '@/views/Page21.vue')
   },
   {
+    path: '/page22',
+    name: 'Page22',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page22.vue')
+  },
+  {
     path: '/404',
     name: '404',
     component: () => import(/* webpackChunkName: "error" */ '@/views/Err.vue')
