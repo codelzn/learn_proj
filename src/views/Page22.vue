@@ -68,7 +68,7 @@ class Main {
   }
 
   public init () {
-    gsap.timeline()
+    gsap.timeline({ repeat: -1 })
       .to(this.material!.uniforms.uAnimation, {
         value: 1,
         duration: 2,
@@ -80,7 +80,7 @@ class Main {
         duration: 2,
         delay: 1,
         ease: 'expo.in'
-      }).repeat(-1)
+      })
   }
 
   public setMesh () {
