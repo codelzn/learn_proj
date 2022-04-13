@@ -73,12 +73,18 @@ class Main {
   public tl1 (): gsap.core.Timeline {
     return gsap.timeline({ repeat: -1, yoyo: true })
   }
+
+  public ut (): void {
+    const msg = gsap.version
+    console.log(msg)
+  }
 }
 
 onMounted(() => {
   const main = new Main()
   // main.changeSize2()
   // main.dotAnimate()
+  main.ut()
   const tl = main.tl1()
   tl.from(size, {
     duration: 2,

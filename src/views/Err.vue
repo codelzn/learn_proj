@@ -1,3 +1,3 @@
 <template>
-  <h1>ルーター書き忘れた</h1>
+  <h1>Router書き忘れた</h1>
 </template>
