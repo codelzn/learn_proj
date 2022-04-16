@@ -7,6 +7,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import(/* webpackChunkName: "main" */ '@/views/index.vue')
   },
   {
+    path: '/shader',
+    name: 'shader',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/shader.vue')
+  },
+  {
     path: '/page01',
     name: 'Page01',
     component: () => import(/* webpackChunkName: "page" */ '@/views/Page01.vue')
