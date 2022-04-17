@@ -6,7 +6,7 @@
 import * as THREE from 'three'
 import { onMounted } from 'vue'
 import vertexShader from '../shaders/shaderlearn/vertex.vert'
-import fragmentShader from '../shaders/shaderlearn/fragment.frag'
+import fragmentShader from '../shaders/shaderlearn/fragment2.frag'
 
 class Main {
   public gl: HTMLElement
@@ -40,6 +40,7 @@ class Main {
       this.material!.uniforms.u_resolution.value.x = window.innerWidth
       this.material!.uniforms.u_resolution.value.y = window.innerHeight
     }
+    this.onWindowResize()
     this._animate()
   }
 
@@ -93,9 +94,6 @@ class Main {
       this.material!.uniforms.u_mouse.value.x = evt.clientX
       this.material!.uniforms.u_mouse.value.y = evt.clientY
     }
-    const resX = this.material!.uniforms.u_mouse.value.x / this.material!.uniforms.u_resolution.value.x
-    const resY = this.material!.uniforms.u_mouse.value.y / this.material!.uniforms.u_resolution.value.y
-    console.log(resX, resY)
   }
 }
 
