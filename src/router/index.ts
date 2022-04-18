@@ -7,9 +7,14 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import(/* webpackChunkName: "main" */ '@/views/index.vue')
   },
   {
-    path: '/shader',
-    name: 'shader',
-    component: () => import(/* webpackChunkName: "page" */ '@/views/shader.vue')
+    path: '/fragshader',
+    name: 'fragshader',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/fragshader.vue')
+  },
+  {
+    path: '/vertshader',
+    name: 'vertshader',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/vertshader.vue')
   },
   {
     path: '/page01',

@@ -5,8 +5,8 @@
 <script setup lang="ts">
 import * as THREE from 'three'
 import { onMounted } from 'vue'
-import vertexShader from '../shaders/shaderlearn/vertex.vert'
-import fragmentShader from '../shaders/shaderlearn/fragment2.frag'
+import vertexShader from '../shaders/fragshader/vertex.vert'
+import fragmentShader from '../shaders/fragshader/fragment4.frag'
 
 class Main {
   public gl: HTMLElement
@@ -14,6 +14,10 @@ class Main {
   public camera: THREE.OrthographicCamera
   public renderer: THREE.WebGLRenderer
   public clock: THREE.Clock
+  public textureLoader: THREE.TextureLoader
+  public loadingManager: THREE.LoadingManager
+  public img1: THREE.Texture
+  public img2: THREE.Texture
 
   public geometry: THREE.PlaneGeometry | null
   public material: THREE.ShaderMaterial | null
@@ -27,20 +31,30 @@ class Main {
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.gl.appendChild(this.renderer.domElement)
     this.clock = new THREE.Clock()
+    this.loadingManager = new THREE.LoadingManager()
+    this.textureLoader = new THREE.TextureLoader(this.loadingManager)
 
     this.geometry = null
     this.material = null
     this.plane = null
-    this.init()
+    this.img1 = this.textureLoader.load('/image/25.jpg')
+    this.img2 = this.textureLoader.load('/image/18.jpg')
+
+    this.loadingManager.onLoad = () => {
+      this.init()
+    }
   }
 
-  public init () {
-    this._initMesh()
+  public async init () {
+    await this._initMesh()
     if (this.material!.uniforms.u_resolution !== undefined) {
       this.material!.uniforms.u_resolution.value.x = window.innerWidth
       this.material!.uniforms.u_resolution.value.y = window.innerHeight
     }
     this.onWindowResize()
+    window.addEventListener('resize', () => this.onWindowResize())
+    window.addEventListener('mousemove', e => this.move(e))
+    window.addEventListener('touchstart', e => this.move(e))
     this._animate()
   }
 
@@ -53,11 +67,17 @@ class Main {
         u_color: { value: new THREE.Color(0x00FF00) },
         u_time: { value: 0.0 },
         u_mouse: { value: { x: 0.0, y: 0.0 } },
-        u_resolution: { value: { x: 0.0, y: 0.0 } }
+        u_resolution: { value: { x: 0.0, y: 0.0 } },
+        u_texture1: { value: this.img1 },
+        u_texture2: { value: this.img2 },
+        u_color_a: { value: new THREE.Color('red') },
+        u_color_b: { value: new THREE.Color('yellow') },
+        u_duration: { value: 8.0 }
       }
     })!
     this.plane = new THREE.Mesh(this.geometry, this.material)!
     this.scene.add(this.plane)
+    return Promise.resolve
   }
 
   private _animate () {
@@ -99,9 +119,6 @@ class Main {
 
 onMounted(() => {
   const gl = new Main(document.querySelector<HTMLElement>('.container')!)
-  window.addEventListener('resize', () => gl.onWindowResize())
-  window.addEventListener('mousemove', e => gl.move(e))
-  window.addEventListener('touchstart', e => gl.move(e))
 })
 </script>
 <style lang="less">
