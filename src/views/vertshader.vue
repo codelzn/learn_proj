@@ -6,21 +6,31 @@
 import * as THREE from 'three'
 import { onMounted } from 'vue'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import GUI from 'lil-gui'
+import Stats from 'stats.js'
 import vertexShader from '../shaders/vertshader/vertex.vert'
 import fragmentShader from '../shaders/vertshader/fragment.frag'
+import '../utils/MyShaderChunks'
 
 class Main {
-  container: HTMLElement
-  scene: THREE.Scene
-  camera: THREE.PerspectiveCamera
-  renderer: THREE.WebGLRenderer
-  controls: OrbitControls
-  clock: THREE.Clock
+  public container: HTMLElement
+  public scene: THREE.Scene
+  public camera: THREE.PerspectiveCamera
+  public renderer: THREE.WebGLRenderer
+  public controls: OrbitControls
+  public clock: THREE.Clock
+  public GUI: GUI
+  public stats: Stats
+  public ambient: THREE.HemisphereLight
+  public light: THREE.DirectionalLight
 
-  cube: THREE.Mesh | null
-  geometry: THREE.BoxGeometry | null
-  material: THREE.ShaderMaterial | null
-  material1: THREE.MeshBasicMaterial | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public uniforms: any
+
+  public cube: THREE.Mesh | null
+  public geometry: THREE.IcosahedronGeometry | null
+  public material: THREE.ShaderMaterial | null
+  public material1: THREE.MeshBasicMaterial | null
 
   constructor (container: HTMLElement) {
     this.container = container
@@ -35,8 +45,29 @@ class Main {
 
     this.clock = new THREE.Clock()
 
+    this.GUI = new GUI()
+
+    this.stats = new Stats()
+    this.stats.showPanel(0)
+
+    this.ambient = new THREE.HemisphereLight(0x444444, 0x111111, 1)
+    this.light = new THREE.DirectionalLight(0xcccccc, 0.8)
+    this.light.position.set(0, 6, 2)
+    this.scene.add(this.ambient)
+    this.scene.add(this.light)
+
     this.controls = new OrbitControls(this.camera, this.renderer.domElement)
     this.controls.enableDamping = true
+
+    this.uniforms = THREE.UniformsUtils.merge([
+      THREE.UniformsLib.common,
+      THREE.UniformsLib.lights
+    ])
+    this.uniforms.u_time = { value: 0.0 }
+    this.uniforms.u_mouse = { value: { x: 0.0, y: 0.0 } }
+    this.uniforms.u_resolution = { value: { x: 0, y: 0 } }
+    this.uniforms.u_radius = { value: 20.0 }
+    this.uniforms.u_color = { value: new THREE.Color(0xb7ff00) }
 
     this.cube = null
     this.geometry = null
@@ -47,33 +78,35 @@ class Main {
   public init () {
     this._render()
     this._initCube()
+    this.initGUI()
     this._addListeners()
     this.setLoop()
   }
 
   private _render () {
     this.container.appendChild(this.renderer.domElement)
+    this.container.appendChild(this.stats.dom)
   }
 
   private _initCube () {
-    this.geometry = new THREE.BoxGeometry(30, 30, 30, 10, 10, 10)
+    this.geometry = new THREE.IcosahedronGeometry(20, 4)
     this.material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
       wireframe: true,
-      uniforms: {
-        u_time: { value: 0 },
-        u_mouse: { value: { x: 0, y: 0 } },
-        u_resolution: { value: { x: window.innerWidth, y: window.innerHeight } },
-        u_radius: { value: 20.0 }
-      }
+      lights: true,
+      uniforms: this.uniforms
     })
     this.material1 = new THREE.MeshBasicMaterial({
       color: 0xb7ff00,
-      wireframe: true
+      wireframe: false
     })
     this.cube = new THREE.Mesh(this.geometry, this.material)
     this.scene.add(this.cube)
+  }
+
+  public initGUI () {
+    console.log('gui init')
   }
 
   private _addListeners () {
@@ -116,6 +149,7 @@ class Main {
       }
       this.cube!.rotation.x += 0.01
       this.cube!.rotation.z += 0.01
+      this.stats.update()
     })
   }
 }
@@ -123,7 +157,6 @@ class Main {
 onMounted(() => {
   const gl = new Main(document.querySelector<HTMLElement>('.container')!)
   gl.init()
-  gl.material!.wireframe = false
 })
 </script>
 <style lang="less">
