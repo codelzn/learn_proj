@@ -23,6 +23,7 @@ class Main {
   public stats: Stats
   public ambient: THREE.HemisphereLight
   public light: THREE.DirectionalLight
+  public loader: THREE.TextureLoader
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public uniforms: any
@@ -42,6 +43,7 @@ class Main {
     this.renderer = new THREE.WebGLRenderer({ antialias: true })
     this.renderer.setSize(window.innerWidth, window.innerHeight)
     this.renderer.setPixelRatio(window.devicePixelRatio)
+    this.loader = new THREE.TextureLoader()
 
     this.clock = new THREE.Clock()
 
@@ -68,6 +70,7 @@ class Main {
     this.uniforms.u_resolution = { value: { x: 0, y: 0 } }
     this.uniforms.u_radius = { value: 20.0 }
     this.uniforms.u_color = { value: new THREE.Color(0xb7ff00) }
+    this.uniforms.u_tex = { value: this.loader.load('/image/vertshader.png') }
 
     this.cube = null
     this.geometry = null
@@ -89,11 +92,11 @@ class Main {
   }
 
   private _initCube () {
-    this.geometry = new THREE.IcosahedronGeometry(20, 4)
+    this.geometry = new THREE.IcosahedronGeometry(20, 10)
     this.material = new THREE.ShaderMaterial({
       vertexShader,
       fragmentShader,
-      wireframe: true,
+      wireframe: false,
       lights: true,
       uniforms: this.uniforms
     })
@@ -147,8 +150,8 @@ class Main {
       if (this.material) {
         this.material.uniforms.u_time.value = this.clock.getElapsedTime()
       }
-      this.cube!.rotation.x += 0.01
-      this.cube!.rotation.z += 0.01
+      // this.cube!.rotation.x += 0.01
+      // this.cube!.rotation.z += 0.01
       this.stats.update()
     })
   }
