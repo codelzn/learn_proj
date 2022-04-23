@@ -1,132 +1,124 @@
 <template>
-<div class="container">
-  <img src="/image/18.jpg" alt="">
-  <h1 :style="{ fontSize: size.fsize + 'px' }">おはようございます</h1>
-  <h1 :style="{ fontSize: size.fsize + 'px' }">{{size.fsize}}</h1>
-  <div class="dot">
-    <span class="dot-item" style="--color: red"></span>
-    <span class="dot-item" style="--color: green"></span>
-    <span class="dot-item" style="--color: blue"></span>
-    <span class="dot-item" style="--color: pink"></span>
-    <span class="dot-item" style="--color: skyblue"></span>
-  </div>
+<div id="container">
 </div>
 </template>
 <script lang="ts" setup>
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { onMounted, reactive } from 'vue'
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import fragmentShader from '../shaders/page24/fragment.frag'
+import vertexShader from '../shaders/page24/vertex.vert'
+import ocean from '../assets/img24/ocean.jpg'
+import Stats from 'stats.js'
+import GUI from 'lil-gui'
+import { onMounted } from 'vue'
 
-const size = reactive({
-  fsize: 10
-})
-
-class Main {
-  constructor () {
-    gsap.registerPlugin(ScrollTrigger)
-  }
-
-  public movePic () {
-    gsap.to('.container img', {
-      duration: 2,
-      width: '100%',
-      height: 'auto'
-    })
-  }
-
-  public setPic () {
-    gsap.set('.container img', {
-      transformOrigin: 'right bottom'
-    })
-    gsap.to('.container img', {
-      duration: 2,
-      rotation: 360,
-      ease: 'power3.out'
-    })
-  }
-
-  public changeSize1 () {
-    gsap.to(size, {
-      duration: 2,
-      fsize: 30
-    })
-  }
-
-  public changeSize2 () {
-    gsap.from(size, {
-      duration: 2,
-      fsize: 30
-    })
-  }
-
-  public dotAnimate () {
-    gsap.from('.dot .dot-item', {
-      duration: 1,
-      opacity: 0,
-      // y: () => Math.random() * 400 - 200,
-      y: 'random(-200, 200)',
-      stagger: 0.25,
-      delay: 1.5
-    })
-  }
-
-  public tl1 (): gsap.core.Timeline {
-    return gsap.timeline({ repeat: -1, yoyo: true })
-  }
-
-  public ut (): void {
-    const msg = gsap.version
-    console.log(msg)
-  }
+interface optionInterface {
+  dom: HTMLElement
 }
 
-onMounted(() => {
-  const main = new Main()
-  // main.changeSize2()
-  // main.dotAnimate()
-  main.ut()
-  const tl = main.tl1()
-  tl.from(size, {
-    duration: 2,
-    fsize: 30
-  }).to('h1', {
-    duration: 2,
-    rotation: 45
-  })
-    .addLabel('out', '+=0.5')
-    .from('.dot .dot-item', {
-      duration: 1,
-      opacity: 0,
-      y: 'random(-200, 200)',
-      stagger: 0.25
+class Sketch {
+  public time:number
+  public scene:THREE.Scene
+  public renderer:THREE.WebGLRenderer
+  public camera:THREE.PerspectiveCamera
+  public dom:HTMLElement
+  public geometry:THREE.PlaneBufferGeometry|THREE.SphereBufferGeometry|null
+  public material:THREE.ShaderMaterial|null
+  public mesh:THREE.Mesh|null
+  public controls: OrbitControls
+  public stats: Stats
+  public gui: GUI
+
+  public width:number
+  public height:number
+  constructor (options: optionInterface) {
+    this.time = 0
+    this.dom = options.dom
+    this.width = this.dom.offsetWidth
+    this.height = this.dom.offsetHeight
+    this.scene = new THREE.Scene()
+    this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 0.01, 10)
+    this.camera.position.z = 1
+    this.renderer = new THREE.WebGLRenderer({ antialias: true })
+    this.renderer.setSize(this.width, this.height)
+    this.dom.appendChild(this.renderer.domElement)
+    this.controls = new OrbitControls(this.camera, this.renderer.domElement)
+    this.controls.enableDamping = true
+    this.stats = new Stats()
+    this.stats.showPanel(0)
+    this.dom.appendChild(this.stats.dom)
+    this.gui = new GUI()
+    this.geometry = null
+    this.material = null
+    this.mesh = null
+
+    this.resize()
+    this.setupResize()
+    this.addObjects()
+    this.render()
+  }
+
+  public setupResize () {
+    window.addEventListener('resize', this.resize.bind(this))
+  }
+
+  public addObjects () {
+    this.geometry = new THREE.PlaneBufferGeometry(1, 1, 40, 40)
+    this.geometry = new THREE.SphereBufferGeometry(0.5, 32, 32)
+    this.material = new THREE.ShaderMaterial({
+      side: THREE.DoubleSide,
+      fragmentShader,
+      vertexShader,
+      wireframe: true,
+      uniforms: {
+        time: { value: 0 },
+        oceanTexture: { value: new THREE.TextureLoader().load(ocean) },
+        customA: { value: 0.0 }
+      }
     })
-    .to('.dot .dot-item', {
-      duration: 0.5,
-      opacity: 0,
-      x: 300
-    }, 'out')
+    this.gui.add(this.material!.uniforms.customA, 'value', 0.0, 1.0, 0.001)
+    this.mesh = new THREE.Mesh(this.geometry, this.material)
+    this.scene.add(this.mesh)
+  }
+
+  public resize () {
+    this.width = this.dom.offsetWidth
+    this.height = this.dom.offsetHeight
+    this.camera.aspect = this.width / this.height
+    this.camera.updateProjectionMatrix()
+    this.renderer.setSize(this.width, this.height)
+  }
+
+  public render () {
+    this.time += 0.05
+    this.mesh!.rotation.x = this.time / 2000
+    this.mesh!.rotation.y = this.time / 1000
+
+    this.material!.uniforms.time.value = this.time
+    this.controls.update()
+    this.stats.update()
+    this.renderer.render(this.scene, this.camera)
+    window.requestAnimationFrame(this.render.bind(this))
+  }
+}
+onMounted(() => {
+  const sketch = new Sketch({
+    dom: document.getElementById('container')!
+  })
+  sketch.render()
 })
+
 </script>
 <style lang="less">
-img {
-  width: 500px;
+* {
+  margin: 0;
+  padding: 0;
 }
-.container h1 {
-  display: inline-flex;
-  color: green;
+canvas {
+  display: block;
 }
-.dot {
-  position: absolute;
-  width: 100%;
-  right: 0;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  span {
-    background-color: var(--color);
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-  }
+#container {
+  width: 100vw;
+  height: 100vh;
 }
 </style>
