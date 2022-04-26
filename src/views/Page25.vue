@@ -107,8 +107,7 @@
         <footer class="footer">
           <p>&copy; all news from <a href="javascript:;">LiveScience</a></p>
           <p>
-            This page was made for <a
-              href="javascript:;">Merging WebGL and HTML course
+            This page was made for <a href="javascript:;">Merging WebGL and HTML course
               on Awwwards.com</a>
             <br>Wish you a good day! =)
           </p>
@@ -124,9 +123,11 @@
 </template>
 <script lang="ts" setup>
 import * as THREE from 'three'
+import gsap from 'gsap'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import fragmentShader from '../shaders/page25/fragment.frag'
 import vertexShader from '../shaders/page25/vertex.vert'
+import noise from '../shaders/page25/noise.glsl'
 import ocean from '../assets/img24/ocean.jpg'
 import Stats from 'stats.js'
 import GUI from 'lil-gui'
@@ -134,17 +135,22 @@ import FontFaceObserver from 'fontfaceobserver'
 import imagesLoaded from 'imagesloaded'
 import { onMounted } from 'vue'
 
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js'
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js'
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js'
+
 interface optionInterface {
   dom: HTMLElement
 }
 
 interface imageStoreInterface {
-    img: HTMLImageElement
-    mesh: THREE.Mesh
-    top: number
-    left: number
-    width: number
-    height: number
+  img: HTMLImageElement
+  mesh: THREE.Mesh
+  top: number
+  left: number
+  width: number
+  height: number
 }
 
 interface DOMInterface {
@@ -152,7 +158,7 @@ interface DOMInterface {
   scrollable?: HTMLElement
 }
 
-const lerp = (a:number, b:number, n:number):number => (1 - n) * a + n * b
+const lerp = (a: number, b: number, n: number): number => (1 - n) * a + n * b
 
 class Scroll {
   public DOM: DOMInterface
@@ -221,11 +227,11 @@ class Scroll {
     // translates the scrollable element
     if (
       Math.round(this.scrollToRender) !==
-          Math.round(this.current) ||
-        this.scrollToRender < 10
+      Math.round(this.current) ||
+      this.scrollToRender < 10
     ) {
       this.DOM.scrollable!.style.transform = `translate3d(0,${-1 *
-          this.scrollToRender}px,0)`
+        this.scrollToRender}px,0)`
     }
   }
 
@@ -246,14 +252,14 @@ class Scroll {
 }
 
 class Sketch {
-  public time:number
-  public scene:THREE.Scene
-  public renderer:THREE.WebGLRenderer
-  public camera:THREE.PerspectiveCamera
-  public dom:HTMLElement
-  public geometry:THREE.PlaneBufferGeometry|THREE.SphereBufferGeometry|null
-  public material:THREE.ShaderMaterial|null
-  public mesh:THREE.Mesh|null
+  public time: number
+  public scene: THREE.Scene
+  public renderer: THREE.WebGLRenderer
+  public camera: THREE.PerspectiveCamera
+  public dom: HTMLElement
+  public geometry: THREE.PlaneBufferGeometry | THREE.SphereBufferGeometry | null
+  public material: THREE.ShaderMaterial | null
+  public mesh: THREE.Mesh | null
   public controls: OrbitControls
   public stats: Stats
   public gui: GUI
@@ -262,13 +268,19 @@ class Sketch {
   public mouse: THREE.Vector2
   public materials?: THREE.ShaderMaterial[]
 
-  public width:number
-  public height:number
+  public width: number
+  public height: number
 
   public images: HTMLImageElement[]
   public imageStore: imageStoreInterface[]
 
   public currentScroll: number
+  public previousScroll: number
+
+  public composer?: EffectComposer
+  public renderPass?: RenderPass
+  public myEffect?: { uniforms: { [propName: string]: { value: any } }, vertexShader: string, fragmentShader: string }
+  public customPass?: ShaderPass
   constructor (options: optionInterface) {
     this.time = 0
     this.dom = options.dom
@@ -279,7 +291,7 @@ class Sketch {
     this.camera.position.z = 600
     this.camera.fov = 2 * Math.atan((this.height / 2) / 600) * (180 / Math.PI)
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
+    this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true })
     this.renderer.setSize(this.width, this.height)
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.dom.appendChild(this.renderer.domElement)
@@ -317,6 +329,7 @@ class Sketch {
     const allDone = [fontOpen, fontPlayfair, preloadImages]
 
     this.currentScroll = 0
+    this.previousScroll = 0
     this.raycaster = new THREE.Raycaster()
     this.mouse = new THREE.Vector2()
 
@@ -329,12 +342,56 @@ class Sketch {
       this.resize()
       this.setupResize()
       // this.addObjects()
+      this.composerPass()
       this.render()
       // window.addEventListener('scroll', () => {
       //   this.currentScroll = window.scrollY
       //   this.setPosition()
       // })
     })
+  }
+
+  public composerPass () {
+    this.composer = new EffectComposer(this.renderer)
+    this.renderPass = new RenderPass(this.scene, this.camera)
+    this.composer.addPass(this.renderPass)
+
+    const conter = 0.0
+    this.myEffect = {
+      uniforms: {
+        tDiffuse: { value: null },
+        scrollSpeed: { value: null },
+        time: { value: null }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        void main () {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+        `,
+      fragmentShader: `
+        uniform sampler2D tDiffuse;
+        varying vec2 vUv;
+        uniform float scrollSpeed;
+        uniform float time;
+        ${noise}
+        void main() {
+          vec2 newUv = vUv;
+          float area = smoothstep(1.0, 0.8, vUv.y) * 2.0 -1.0;
+          // area = pow(area, 4.0);
+          float noise = 0.5 * (cnoise(vec3(vUv * 10.0, time /5.0)) + 1.0);
+          float n = smoothstep(0.5, 0.51, noise + area);
+          newUv.x -= (vUv.x - 0.5) * 0.1 * area * scrollSpeed;
+          gl_FragColor = texture2D(tDiffuse, newUv);
+          // gl_FragColor = vec4(n, 0.0, 0.0, 1.0);
+          gl_FragColor = mix(vec4(1.0), texture2D(tDiffuse, newUv), n);
+        }
+      `
+    }
+    this.customPass = new ShaderPass(this.myEffect)
+    this.customPass.renderToScreen = true
+    this.composer.addPass(this.customPass)
   }
 
   public mouseMovement () {
@@ -347,7 +404,8 @@ class Sketch {
       const intersects = this.raycaster.intersectObjects(this.scene.children)
 
       if (intersects.length > 0) {
-        console.log(intersects[0])
+        const obj = intersects[0].object as THREE.Mesh<THREE.PlaneGeometry, THREE.ShaderMaterial>
+        obj.material.uniforms.hover.value = intersects[0].uv
       }
     }, false)
   }
@@ -387,11 +445,11 @@ class Sketch {
       side: THREE.DoubleSide,
       fragmentShader,
       vertexShader,
-      wireframe: true,
       uniforms: {
         time: { value: 0 },
         uImage: { value: 0 },
         hover: { value: new THREE.Vector2(0.5, 0.5) },
+        hoverState: { value: 0.0 },
         oceanTexture: { value: new THREE.TextureLoader().load(ocean) }
       }
     })
@@ -407,6 +465,22 @@ class Sketch {
       //   map: texture
       // })
       const material = this.material!.clone()
+
+      img.addEventListener('mouseenter', () => {
+        gsap.to(material.uniforms.hoverState, {
+          duration: 1,
+          value: 1,
+          ease: 'power2.inOut'
+        })
+      })
+      img.addEventListener('mouseout', () => {
+        gsap.to(material.uniforms.hoverState, {
+          duration: 1,
+          value: 0,
+          ease: 'power2.inOut'
+        })
+      })
+
       this.materials!.push(material)
       material.uniforms.uImage.value = texture
       const mesh = new THREE.Mesh(geometry, material)
@@ -433,8 +507,14 @@ class Sketch {
     this.time += 0.05
 
     this.scroll!.render()
+    this.previousScroll = this.currentScroll
     this.currentScroll = this.scroll!.scrollToRender
+
+    // if (Math.round(this.currentScroll) !== Math.round(this.previousScroll)) {
     this.setPosition()
+
+    this.customPass!.uniforms.scrollSpeed.value = this.scroll!.speedTarget
+    this.customPass!.uniforms.time.value = this.time
 
     this.materials!.forEach(m => {
       m.uniforms.time.value = this.time
@@ -442,8 +522,11 @@ class Sketch {
 
     this.controls.update()
     this.stats.update()
-    this.renderer.render(this.scene, this.camera)
-    window.requestAnimationFrame(this.render.bind(this))
+      // this.renderer.render(this.scene, this.camera)
+      this.composer!.render()
+      // }
+
+      window.requestAnimationFrame(this.render.bind(this))
   }
 }
 onMounted(() => {
