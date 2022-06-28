@@ -142,14 +142,9 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import(/* webpackChunkName: "page" */ '@/views/Page25.vue')
   },
   {
-    path: '/404',
-    name: '404',
-    component: () => import(/* webpackChunkName: "error" */ '@/views/Err.vue')
-  },
-  // 配置404页面
-  {
-    path: '/:pathMatch(.*)',
-    redirect: '/404'
+    path: '/page26',
+    name: 'Page26',
+    component: () => import(/* webpackChunkName: "page" */ '@/views/Page26.vue')
   }
 ]
 

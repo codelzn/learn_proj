@@ -118,6 +118,7 @@ class Main {
 }
 
 onMounted(() => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const gl = new Main(document.querySelector<HTMLElement>('.container')!)
 })
 </script>

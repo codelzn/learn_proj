@@ -3,7 +3,7 @@ const webpack = require('webpack')
 
 module.exports = {
   productionSourceMap: false,
-  publicPath: '/',
+  publicPath: './',
   chainWebpack: (config) => {
     config.module
       .rule('raw')
